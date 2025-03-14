@@ -1,0 +1,9 @@
+LICENSE
+README.md
+setup.py
+statelogic/__init__.py
+statelogic/statelogic.py
+statelogic.egg-info/PKG-INFO
+statelogic.egg-info/SOURCES.txt
+statelogic.egg-info/dependency_links.txt
+statelogic.egg-info/top_level.txt
