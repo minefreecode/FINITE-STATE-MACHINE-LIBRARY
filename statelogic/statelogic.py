@@ -13,9 +13,9 @@ try:
 except NameError:
     __file__ = ''
 try:
-    import pwd
+    import pwd # Обеспечивает доступ к Базе Данных Пользователей и паролей
 except:
-    pwd = None
+    pwd = None # Модуля pwd нет
 from datetime import date, datetime
 import os
 import re
@@ -227,11 +227,13 @@ class FSM(Reflection):
         return fromClass
 
     def transition(self, name, fromState, toState):
-        fromClass = self
+        """Осуществляет переход статуса"""
+        fromClass = self # Из статуса
         if hasattr(self, 'fromClass'):
-            fromClass = self
-        if name not in fromClass.transitions():
+            fromClass = self  # Запоминаем объект из которого происходит переход
+        if name not in fromClass.transitions(): # Если имя в переходах
             def t(self):
+                """Определяем функцию перехода"""
                 if fromClass.state() == fromState:
                     before = "before" + name[0].upper() + name[1:]
                     next = True
@@ -252,7 +254,7 @@ class FSM(Reflection):
                         after = "after" + name[0].upper() + name[1:]
                         if after in fromClass.methods():
                             fromClass.__dict__[after]()
-                        self.onState(toState)
+                        self.onState(toState) # Вызываем функцию, которая как бы является слушаетелем события изменения статуса
                     fromClass._["transitionName"] = ""
                     fromClass._["fromState"] = ""
                     fromClass._["toState"] = ""
@@ -267,6 +269,7 @@ class FSM(Reflection):
         return fromClass
 
     def onState(self, state=None):
+        """Функция при изменении статуса"""
         if state is None:
             state = self.state()
         newname = "on" + state.upper()
@@ -433,6 +436,7 @@ class Sh(Signal):
         return self
 
     def shellCmd(self, cmd=None):
+        """Запоминаем информацию о os окружении. Узнаем по какому пути расположена команда bash"""
         if cmd is not None:
             self.__shell_cmd__ = cmd
             return self
@@ -440,37 +444,37 @@ class Sh(Signal):
             if 'SHELL' in os.environ:
                 self.__shell_cmd__ = os.environ['SHELL']
                 # cannot use self.pathexists to avoid recursive call
-            elif os.path.exists('/usr/bin/fish'):
-                self.__shell_cmd__ = '/usr/bin/fish'
-            elif os.path.exists('/bin/bash'):
-                self.__shell_cmd__ = '/bin/bash'
-            elif os.path.exists('/bin/ash'):
-                self.__shell_cmd__ = '/bin/ash'
-            elif os.path.exists('/bin/zsh'):
-                self.__shell_cmd__ = '/bin/zsh'
-            elif os.path.exists('/bin/sh'):
-                self.__shell_cmd__ = '/bin/sh'
-            elif os.path.exists('C:\\Windows\\System32\\cmd.exe'):
+            elif os.path.exists('/usr/bin/fish'): # Имеется такой путь
+                self.__shell_cmd__ = '/usr/bin/fish' # Запоминаем информацию, что bash здесь
+            elif os.path.exists('/bin/bash'): # Имеется такой путь
+                self.__shell_cmd__ = '/bin/bash'# Запоминаем информацию, что bash здесь
+            elif os.path.exists('/bin/ash'): # Имеется такой путь
+                self.__shell_cmd__ = '/bin/ash'# Запоминаем информацию, что bash здесь
+            elif os.path.exists('/bin/zsh'): # Имеется такой путь
+                self.__shell_cmd__ = '/bin/zsh'# Запоминаем информацию, что bash здесь
+            elif os.path.exists('/bin/sh'): # Имеется такой путь
+                self.__shell_cmd__ = '/bin/sh'# Запоминаем информацию, что bash здесь
+            elif os.path.exists('C:\\Windows\\System32\\cmd.exe'): # Для Windows узнаем где команда cmd
                 self.__shell_cmd__ = 'C:\\Windows\\System32\\cmd.exe'
-            elif os.path.exists('C:\\Program Files\\Git\\usr\\bin\\bash.exe'):
+            elif os.path.exists('C:\\Program Files\\Git\\usr\\bin\\bash.exe'): # Для Windows узнаем где команда bash
                 self.__shell_cmd__ = 'C:\\Program Files\\Git\\usr\\bin\\bash.exe'
             else:
                 self.__shell_cmd__ = ''
-        return self.__shell_cmd__
+        return self.__shell_cmd__ # Возвращаем информацию о команде
 
     def today(self):
-        return date.today()
+        return date.today() # Получаем информацию о сегодняшней дате
 
     def timestamp(self):
-        return "%s" % (int(time.time()))
+        return "%s" % (int(time.time())) # Получаем информацию о сегодняшнем дате-времени
 
     def userID(self):
-        return os.getuid()
+        return os.getuid() # Получаем информацию о идентификаторе пользователя
 
     def username(self):
         if pwd is None:
             return os.getlogin()
-        return pwd.getpwuid(self.userID())[0]
+        return pwd.getpwuid(self.userID())[0] # Получаем информацию о том с каким именем залогинился пользователь в систему
 
 
 class StateLogic(AppData, Sh):
@@ -607,13 +611,15 @@ class StateLogic(AppData, Sh):
 
     def infoMsg(self, msg, tag=''):
         """Печатать информационные сообщения"""
-        if self.useColor():
+        if self.useColor(): # Если нужно использовать цвета
+            # Задаем аттрибуты для вывода сообщений
             self.__tag__(tag).__message__(msg) \
                 .__timeMsg__(StateLogic.BOLD + StateLogic.ITALICS + StateLogic.DARK_BLUE) \
                 .__header__(StateLogic.BOLD + StateLogic.DARK_BLUE) \
                 .__coloredMsg__(StateLogic.ITALICS + StateLogic.LIGHT_BLUE) \
                 .__tagMsg__(StateLogic.LIGHT_AMBER, StateLogic.LIGHT_BLUE)
         else:
+            # Если цвета не нужно использовать
             self.__tag__(tag).__message__(msg) \
                 .__timeMsg__('') \
                 .__header__('') \
