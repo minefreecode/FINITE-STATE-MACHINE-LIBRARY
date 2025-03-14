@@ -5,21 +5,21 @@ try:
 except NameError:
     input = raw_input
 try:
-    basestring
+    basestring #Используется для рефлективного изучения строк
 except NameError:
     basestring = str
 try:
-    __file__
+    __file__ # Путь к файлу из которого загружен модуль
 except NameError:
     __file__ = ''
 try:
     import pwd # Обеспечивает доступ к Базе Данных Пользователей и паролей
 except:
     pwd = None # Модуля pwd нет
-from datetime import date, datetime
-import os
-import re
-import signal
+from datetime import date, datetime # Импортирует классы для работы с датой и временем
+import os # Функции для работы с операционной системой
+import re # Функции для работы с регулярными выражениями
+import signal # Для обработки сигналов операционной системы
 import time
 
 
@@ -277,6 +277,7 @@ class FSM(Reflection):
             self.fromClass.__dict__[newname]()
 
     def __init__(self, fromClass=None):
+        """Описывает объект перехода откуда и куда. """
         isSelf = False
         if fromClass is None:
             isSelf = True
@@ -367,15 +368,17 @@ class Signal(Reflection):
         self.__init_signal__()
 
     def __init_signal__(self):
+        # Инициализирует обработку сигналов операционной системы
         if not hasattr(self, '__signal_inited__'):
             self.__signal_inited__ = True
             Attr(self, 'signal', 0)
             self.errorState = FSM()
+            # Описывает переходы FSM откуда и куда
             self.errorState.transition("hasError", "normal", "error") \
                 .transition("ignoreError", "normal", "errorIgnored") \
                 .transition("resetNormal", "errorIgnored", "normal") \
                 .state("normal")
-            signal.signal(signal.SIGINT, self.signal_handler)
+            signal.signal(signal.SIGINT, self.signal_handler) # Включаем обработчик для сигналов операционной системы
 
     def hasError(self):
         self.errorState.hasError()
