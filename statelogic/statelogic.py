@@ -54,7 +54,7 @@ class Attr(object):
         return self._["class"]
 
     def value(self, x=None):
-        """Функция значения"""
+        """Получаем доступ к значению добавленного аттрибута"""
         if x is None:
             return self._["value"]
         elif self._["value"] is None:
@@ -72,10 +72,11 @@ class Attr(object):
 
     def __init__(self, fromClass=None, attrName='', value=None, readonly=False, autostrip=True, sorting=True,
                  onChange=None):
-        """Инициализация"""
+        """Задаме новый аттрибуты классу"""
         if isinstance(attrName, basestring):
             attrName = attrName.strip()
             if attrName == "" or attrName in Attr.RESERVED:
+                """Если аттрибут из зарезервированных то его не переопределяем"""
                 return None
             if fromClass is None:
                 fromClass = self
@@ -89,6 +90,7 @@ class Attr(object):
             if not hasattr(fromClass._, attrName):
                 fromClass._['attrList'].append(attrName)
             if isinstance(value, list):
+                # Определяем параметры аттрибута
                 self._ = {"class": fromClass, "name": attrName, "value": None, "list": value, "readonly": readonly,
                           "autostrip": autostrip, "sorting": sorting, "onChange": onChange}
             else:
@@ -102,12 +104,12 @@ class Attr(object):
                     def lists(self, value=None):
                         return fromClass._[attrName].lists(value)
 
-                    fromClass.__dict__[attrName] = lists.__get__(fromClass)
+                    fromClass.__dict__[attrName] = lists.__get__(fromClass) # Добавляем новый аттрибут к списку аттрибутов
                 else:
                     def attr(self, value=None):
                         return fromClass._[attrName].value(value)
 
-                    fromClass.__dict__[attrName] = attr.__get__(fromClass)
+                    fromClass.__dict__[attrName] = attr.__get__(fromClass) # Добавляем новый аттрибут к списку аттрибутов
 
 
 class Transition(object):
@@ -318,6 +320,7 @@ class AppData(FSM):
     def __ini_appdata__(self, fromClass):
         if not hasattr(self, "__appdata_inited__"):
             self.__appdata_inited__ = True
+            # Добавляем информацию об аттрибутах приложения который вызывает библиотеку
             Attr(fromClass, "author")
             Attr(fromClass, "appName")
             Attr(fromClass, "downloadUrl")
@@ -359,6 +362,7 @@ class AppData(FSM):
             return self
 
     def version(self):
+        """Заполняем информацию о версии"""
         return "%s.%s" % (self.majorVersion(), self.minorVersion())
 
 
@@ -513,6 +517,7 @@ class StateLogic(AppData, Sh):
         self.__init_signal__()
         if not hasattr(fromClass, "__msgbase_inited__"):
             fromClass.__msgbase_inited__ = True
+            # Задаем аттрибуты классу
             Attr(fromClass, "__colorMsgColor__", "")
             Attr(fromClass, "__colorMsgTerm__", "")
             Attr(fromClass, "__headerColor__", "")
@@ -553,6 +558,7 @@ class StateLogic(AppData, Sh):
             if self.appName() == 'None':
                 return self.__headerTerm__()
             else:
+                # Заполнение инфолрмации о приложении
                 return "%s%s(v%s) %s" % (self.__headerColor__(), \
                                          self.appName(), self.version(), \
                                          self.__headerTerm__())
