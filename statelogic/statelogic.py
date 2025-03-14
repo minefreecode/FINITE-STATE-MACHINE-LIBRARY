@@ -112,6 +112,7 @@ class Attr(object):
 
 class Transition(object):
     """Класс перехода"""
+
     def __init__(self, name, fromState, toState):
         """Инициализация перехода"""
         Attr(self, attrName="name", value=name, readonly=True)
@@ -121,9 +122,11 @@ class Transition(object):
 
 class Reflection(object):
     """Рефлексия класса. Изучение класса"""
+
     def hasFunc(self, func):
         """Имеется ли функция"""
-        if hasattr(self, 'fromClass'):
+        if hasattr(self, 'fromClass'): # Класс имеет аттрибут  fromClass
+            # Проверка имеется ли аттрибут func в данном объекте fromClass. Если функция имеется то она вызывается  для данного объекта
             return hasattr(self.fromClass, func) and callable(getattr(self.fromClass, func))
         else:
             return hasattr(self, func) and callable(getattr(self, func))
@@ -137,11 +140,13 @@ class Reflection(object):
 
 class FSM(Reflection):
     """Конечные автоматы, рефлексия"""
+
     def __name_convert__(self, input_string):
-        split_parts = input_string.split('_')
-        converted_parts = [part.capitalize() for part in split_parts]
-        converted_string = ''.join(converted_parts)
-        return converted_string
+        """Конверстирование имени"""
+        split_parts = input_string.split('_')  # Разделяем строку на части
+        converted_parts = [part.capitalize() for part in split_parts]  # Заносим в массив увеличенные строки
+        converted_string = ''.join(converted_parts)  # Объединяем строки
+        return converted_string  # Возвращаем сконвертированную строку
 
     def after(self, name, foo):
         fromClass = self
@@ -187,13 +192,16 @@ class FSM(Reflection):
         if ('STATE' in os.environ and os.environ['STATE'].lower() == 'show') \
                 or ('state' in os.environ and os.environ['state'].lower() == 'show') \
                 or (self.hasFunc('logTo') and self.logTo() != ''):
+            """Если STATUS в переменных окружения os.environ и этот статус со значением show или у передаваемого 
+            объекта имеется функция logTo """
             if func != "":
                 func = " in %s" % func
             name = self._["transitionName"]
-            fromState = self._["fromState"]
-            toState = self._["toState"]
-            if self.hasFunc('infoMsg'):
-                self.infoMsg("Transition (%s%s) : [%s] -> [%s]" % (name, func, fromState, toState), "STATE CHANGED")
+            fromState = self._["fromState"] # Из какого статуса происходит перевод
+            toState = self._["toState"] # В какой статус происходит перевод
+            if self.hasFunc('infoMsg'): # Задана функция infoMsg
+                # Выводим информацию из какого статуса в какой статус происходит переход
+                self.infoMsg("Transition (%s%s) : [%s] -> [%s]" % (name, func, fromState, toState), "STATE CHANGED") # Информация об изменении статуса
         return self
 
     def before(self, name, foo):
@@ -287,6 +295,7 @@ class FSM(Reflection):
 
 
 class AppData(FSM):
+    """Данные приложения FSM"""
 
     def __init__(self, this=None, fromClass=None):
         if fromClass is None:
@@ -349,6 +358,8 @@ class AppData(FSM):
 
 
 class Signal(Reflection):
+    """Рефлексия объекта сигнал"""
+
     def __init__(self):
         self.__init_signal__()
 
@@ -390,6 +401,7 @@ class Signal(Reflection):
 
 
 class Sh(Signal):
+    """Сигнал"""
 
     def __init__(self):
         try:
@@ -462,6 +474,7 @@ class Sh(Signal):
 
 
 class StateLogic(AppData, Sh):
+    """Логика статики"""
     BOLD = '\033[1m'
     DARK_AMBER = '\033[33m'
     DARK_BLUE = '\033[34m'
@@ -476,6 +489,7 @@ class StateLogic(AppData, Sh):
     LIGHT_TURQUOISE = '\033[96m'
 
     def __init__(self, this=None, fromClass=None):
+        """Инициализация"""
         if fromClass is None:
             fromClass = self
         try:
@@ -499,6 +513,7 @@ class StateLogic(AppData, Sh):
             Attr(fromClass, "useColor", not self.isGitBash())
 
     def __coloredMsg__(self, color=None):
+        """Цветные сообщения"""
         if color is None:
             if self.__message__() == '':
                 return ''
@@ -519,6 +534,7 @@ class StateLogic(AppData, Sh):
                                    self.__tagMsg__(), self.__coloredMsg__())
 
     def __header__(self, color=None):
+        """Заголовки"""
         if color is None:
             if self.appName() == 'None':
                 return self.__headerTerm__()
@@ -536,6 +552,7 @@ class StateLogic(AppData, Sh):
         return self
 
     def __tagMsg__(self, color=None, outterColor=None):
+        """Печать сообщений связанных с тегами"""
         if color is None:
             if self.__tag__() == '' or not self.useColor():
                 return '[%s]: ' % self.__tag__()
@@ -556,6 +573,7 @@ class StateLogic(AppData, Sh):
             return self
 
     def __timeMsg__(self, color=None):
+        """Базовый метод для печати сообщений"""
         if color is None:
             return "%s%s%s" % (self.__timeColor__(), self.now(), \
                                self.__timeTerm__())
@@ -569,6 +587,7 @@ class StateLogic(AppData, Sh):
             return self
 
     def criticalMsg(self, msg, tag=''):
+        """Печатать критическуие сообщения"""
         if self.useColor():
             self.__tag__(tag).__message__(msg) \
                 .__timeMsg__(StateLogic.BOLD + StateLogic.ITALICS + \
@@ -587,6 +606,7 @@ class StateLogic(AppData, Sh):
         return self
 
     def infoMsg(self, msg, tag=''):
+        """Печатать информационные сообщения"""
         if self.useColor():
             self.__tag__(tag).__message__(msg) \
                 .__timeMsg__(StateLogic.BOLD + StateLogic.ITALICS + StateLogic.DARK_BLUE) \
@@ -603,6 +623,7 @@ class StateLogic(AppData, Sh):
         return self
 
     def safeMsg(self, msg, tag=''):
+        """Печатать защищенные сообщения"""
         if self.useColor():
             self.__tag__(tag).__message__(msg).__timeMsg__(StateLogic.BOLD + StateLogic.ITALICS + \
                                                            StateLogic.DARK_TURQUOISE) \
