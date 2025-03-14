@@ -115,9 +115,9 @@ class Transition(object):
 
     def __init__(self, name, fromState, toState):
         """Инициализация перехода"""
-        Attr(self, attrName="name", value=name, readonly=True)
-        Attr(self, attrName="fromState", value=fromState, readonly=True)
-        Attr(self, attrName="toState", value=toState, readonly=True)
+        Attr(self, attrName="name", value=name, readonly=True) # Задаем имя перехода
+        Attr(self, attrName="fromState", value=fromState, readonly=True) # Задлаем откуда переход происходит
+        Attr(self, attrName="toState", value=toState, readonly=True) # Опеределяем куда происходит переход
 
 
 class Reflection(object):
@@ -127,15 +127,16 @@ class Reflection(object):
         """Имеется ли функция"""
         if hasattr(self, 'fromClass'): # Класс имеет аттрибут  fromClass
             # Проверка имеется ли аттрибут func в данном объекте fromClass. Если функция имеется то она вызывается  для данного объекта
-            return hasattr(self.fromClass, func) and callable(getattr(self.fromClass, func))
+            return hasattr(self.fromClass, func) and callable(getattr(self.fromClass, func))# Ссылка на предыдущий класс
         else:
             return hasattr(self, func) and callable(getattr(self, func))
 
     def func(self, func):
+        """Имеется аттрибут класса"""
         if hasattr(self, 'fromClass'):
-            self.fromClass.__dict__[func]()
+            self.fromClass.__dict__[func]() # Вызываем функцию которую уже запомнили
         else:
-            self.__dict__[func]()
+            self.__dict__[func]()  # Вызываем функцию которую уже запомнили
 
 
 class FSM(Reflection):
@@ -285,13 +286,13 @@ class FSM(Reflection):
         self.fromClass = fromClass
         Attr(fromClass, "state", readonly=True)
         Attr(fromClass, "nextState", "", readonly=True)
-        Attr(fromClass, attrName="methods", value=[])
-        Attr(fromClass, attrName="transitions", value=[])
-        Attr(fromClass, attrName="states", value=[])
+        Attr(fromClass, attrName="methods", value=[]) # Методы по умолчанию пустые
+        Attr(fromClass, attrName="transitions", value=[]) # Инициализируем пеореходы по умолчанию пустые
+        Attr(fromClass, attrName="states", value=[]) # Статусы по умолчанию пустые
         fromClass.__dict__['onState'] = self.onState.__get__(fromClass)
         if not isSelf:
             fromClass.__dict__['fromClass'] = fromClass
-            fromClass.__dict__['transition'] = self.transition.__get__(fromClass)
+            fromClass.__dict__['transition'] = self.transition.__get__(fromClass)  # Переходы узнаем рефлективным способом из класса
             fromClass.__dict__['after'] = self.after.__get__(fromClass)
             fromClass.__dict__['on'] = self.on.__get__(fromClass)
             fromClass.__dict__['before'] = self.before.__get__(fromClass)
@@ -362,7 +363,7 @@ class AppData(FSM):
 
 
 class Signal(Reflection):
-    """Рефлексия объекта сигнал"""
+    """Базовый класс сигналов. Рефлексия объекта сигнала. Наследуемся от класса который может рефлексировать себя"""
 
     def __init__(self):
         self.__init_signal__()
@@ -398,7 +399,8 @@ class Signal(Reflection):
         return state == "errorIgnored"
 
     def signal_handler(self, sig, frame):
-        self.signal(sig)
+        """Обработчик сигналов который вызывается операционной системой"""
+        self.signal(sig) # Следит за пользователей какие кнопки он нажал
         if sig == 2:
             self.prn('\nYou pressed Ctrl + c!\n')
         if sig == 3:
@@ -410,8 +412,9 @@ class Sh(Signal):
     """Сигнал"""
 
     def __init__(self):
+        """Конструктор объекта"""
         try:
-            super().__init__()
+            super().__init__() # Вызываем инициализацию базового класса
         except:
             super(Sh, self).__init__()
 
@@ -423,15 +426,18 @@ class Sh(Signal):
         return self.__is_gitbash__
 
     def now(self):
-        return str(datetime.now())
+        return str(datetime.now()) # Время
 
     def pid(self):
-        return os.getpid()
+        return os.getpid() # Идентификатор текущего процесса
 
     def prn(self, val):
+        # Печать на экран
         if self.hasFunc('logTo') and self.logTo() != '':
+            """Если имеется функция логгировать"""
             try:
                 with open(self.logTo(), 'a') as f:
+                    # Записываем в файл логов
                     f.write(val + '\n')
             except:
                 pass
@@ -445,6 +451,7 @@ class Sh(Signal):
             return self
         elif not hasattr(self, '__shell_cmd__'):
             if 'SHELL' in os.environ:
+                # Если задан SHELL в окружении то искать команду не нужно, просто запоминаем его
                 self.__shell_cmd__ = os.environ['SHELL']
                 # cannot use self.pathexists to avoid recursive call
             elif os.path.exists('/usr/bin/fish'): # Имеется такой путь
@@ -517,7 +524,7 @@ class StateLogic(AppData, Sh):
             Attr(fromClass, "__tagTerm__", "")
             Attr(fromClass, "__timeColor__", "")
             Attr(fromClass, "__timeTerm__", "")
-            Attr(fromClass, "useColor", not self.isGitBash())
+            Attr(fromClass, "useColor", not self.isGitBash()) # Если не является башем гита можно задвать цвет
 
     def __coloredMsg__(self, color=None):
         """Цветные сообщения"""
